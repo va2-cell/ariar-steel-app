@@ -6,7 +6,7 @@ st.set_page_config(page_title="Ariar Steel App", page_icon="🏗️")
 # --- MENÚ LATERAL ---
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/4342/4342728.png", width=100) # Un icono de construcción
 st.sidebar.title("Panel Ariar Steel")
-opcion = st.sidebar.radio("Ir a:", ["Inicio", "Chat de Equipo", "Mis Horas", "Reporte Semanal"])
+opcion = st.sidebar.radio("Ir a:", ["Inicio", "Chat de Equipo", "Mis Horas", "Reporte Semanal"], key="menu_ariar_unico")
 
 # --- SECCIÓN: INICIO ---
 if opcion == "Inicio":
@@ -60,7 +60,7 @@ st.set_page_config(page_title="Ariar Steel App", page_icon="🏗️")
 # --- MENÚ LATERAL ---
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/4342/4342728.png", width=100) # Un icono de construcción
 st.sidebar.title("Panel Ariar Steel")
-opcion = st.sidebar.radio("Ir a:", ["Inicio", "Chat de Equipo", "Mis Horas", "Reporte Semanal"])
+opcion = st.sidebar.radio("Ir a:", ["Inicio", "Chat de Equipo", "Mis Horas", "Reporte Semanal"], key="menu_unico"
 
 # --- SECCIÓN: INICIO ---
 if opcion == "Inicio":
