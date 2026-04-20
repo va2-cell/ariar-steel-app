@@ -1,17 +1,17 @@
 import streamlit as st
 
 # 1. Configuración de la página
-st.set_page_config(page_title="Ariar Steel Admin", page_icon="🏗️", layout="wide")
+st.set_page_config(page_title="Ariar Steel", page_icon="🏗️", layout="wide")
 
-# 2. LISTA MAESTRA DE EMPLEADOS (Aquí puedes agregar más nombres)
+# 2. LISTA DE EMPLEADOS (Actualízala con los nombres reales)
 lista_empleados = [
     "Seleccionar...", 
-    "Edwin A lopez ", 
-    "Luis Alfaro", 
-    "alejandro", 
-    "flavio avilez", 
-    "Pedro ramos ", 
-    "Jose perez "
+    "Edwin", 
+    "Luis", 
+    "Alexandra", 
+    "Juan", 
+    "Pedro", 
+    "Jose"
 ]
 
 # 3. Menú Lateral
@@ -20,56 +20,66 @@ with st.sidebar:
     st.title("Panel Ariar Steel")
     st.markdown("---")
     
-    menu_opciones = ["Inicio", "Chat de Equipo", "Mis Horas"]
+    # Opciones que todos ven
+    menu_opciones = ["Inicio", "Mis Horas", "Chat de Equipo"]
     
-    st.markdown("### 🔐 Administradores")
-    password = st.text_input("Clave de acceso", type="password")
+    st.markdown("### 🔐 Acceso Admin")
+    password = st.text_input("Clave para administradores", type="password")
     
+    # Solo si ponen la clave correcta aparece el panel de control
+    es_admin = False
     if password == "ariar2026":
         menu_opciones.append("⚙️ Panel de Control")
-        st.success("Acceso Admin")
+        es_admin = True
+        st.success("Modo Admin Activo")
     
     st.markdown("---")
-    opcion = st.radio("Ir a:", menu_opciones, key="menu_principal")
+    opcion = st.radio("Navegación:", menu_opciones)
 
 # 4. Lógica de Contenido
 if opcion == "Inicio":
     st.title("🏗️ Ariar Steel: Control de Obra")
-    st.info("Sistema de gestión de personal y tiempos.")
-    st.write("Bienvenido. Usa el menú lateral para navegar.")
+    st.subheader("Bienvenido al sistema oficial de registro")
+    st.info("Para revisar tus horas, selecciona 'Mis Horas' en el menú de la izquierda.")
+    st.write("---")
+    st.caption("Calidad y Resistencia en cada varilla.")
 
 elif opcion == "Mis Horas":
-    st.title("⏱️ Consulta de Horas")
-    # Usamos la lista de empleados aquí también
-    empleado_consulta = st.selectbox("Busca tu nombre para ver tus horas:", lista_empleados)
-    if empleado_consulta != "Seleccionar...":
-        st.warning(f"Todavía no hay horas registradas para {empleado_consulta} esta semana.")
+    st.title("⏱️ Consulta de mis Horas")
+    st.write("Busca tu nombre para ver cuánto tiempo has trabajado esta semana.")
+    
+    nombre_usuario = st.selectbox("Selecciona tu nombre:", lista_empleados)
+    
+    if nombre_usuario != "Seleccionar...":
+        st.write(f"### Reporte para: {nombre_usuario}")
+        # Aquí es donde se mostrarán los datos del Excel después
+        st.warning(f"Hola {nombre_usuario}, tus horas de esta semana se están procesando. Vuelve a consultar más tarde.")
+        
+        # Simulación de visualización
+        col1, col2 = st.columns(2)
+        col1.metric("Horas Totales", "0.0 hrs")
+        col2.metric("Días Trabajados", "0")
 
 elif opcion == "⚙️ Panel de Control":
-    st.title("⚙️ Registro de Jornada")
-    st.subheader("Ingresa las horas trabajadas hoy")
+    st.title("⚙️ Registro de Jornada (Solo Administradores)")
     
     with st.form("registro_admin", clear_on_submit=True):
+        st.write("Completa los datos para guardar las horas del empleado.")
         col1, col2 = st.columns(2)
-        
         with col1:
-            emp = st.selectbox("Selecciona al Trabajador", lista_empleados)
-            fecha = st.date_input("Fecha de trabajo")
-            
+            emp = st.selectbox("Empleado", lista_empleados)
+            fecha = st.date_input("Fecha")
         with col2:
-            hrs = st.number_input("Horas Totales", min_value=0.0, max_value=24.0, step=0.5)
-            nota = st.text_input("Nota (ej. 'Overtime', 'Llegó tarde')")
+            hrs = st.number_input("Horas", min_value=0.0, max_value=24.0, step=0.5)
+            nota = st.text_input("Comentarios")
             
-        enviar = st.form_submit_button("✅ Guardar Horas")
-        
-        if enviar:
+        if st.form_submit_button("✅ Guardar en Registro"):
             if emp == "Seleccionar...":
-                st.error("Por favor selecciona un nombre válido.")
+                st.error("Selecciona un empleado válido.")
             else:
-                # Esto es lo que conectaremos al Excel después
+                st.success(f"¡Hecho! Se han anotado {hrs} horas para {emp}.")
                 st.balloons()
-                st.success(f"Registradas {hrs} horas para {emp} el día {fecha}")
 
 elif opcion == "Chat de Equipo":
     st.title("💬 Chat de Equipo")
-    st.write("Sección de avisos generales.")
+    st.write("Anuncios importantes para todo el personal de Ariar Steel.")
