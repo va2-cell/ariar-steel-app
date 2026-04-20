@@ -2,13 +2,12 @@ import streamlit as st
 
 # 1. Configuración de la página (Icono y Título en la pestaña del navegador)
 st.set_page_config(page_title="Ariar Steel", page_icon="🏗️", layout="wide")
-
 # 2. Menú Lateral
 with st.sidebar:
-    # LOGO: Puedes cambiar este link por el de tu logo real más adelante
-    st.image("https://cdn-icons-png.flaticon.com/512/4342/4342728.png", width=120)
+    # TU LOGO REAL
+    st.image("https://static.wixstatic.com/media/9a448a_d799fb6afe434c0697f3eebec29c01ed~mv2.png/v1/fill/w_219,h_154,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/%234%20(1).png", width=150)
     st.title("Panel Ariar Steel")
-    st.markdown("---") # Una línea divisora
+    st.markdown("---")
     
     opcion = st.radio(
         "Ir a:", 
