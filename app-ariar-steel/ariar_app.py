@@ -1,7 +1,8 @@
 import streamlit as st
 
-# 1. Configuración de la página (Icono y Título en la pestaña del navegador)
+# 1. Configuración de la página
 st.set_page_config(page_title="Ariar Steel", page_icon="🏗️", layout="wide")
+
 # 2. Menú Lateral
 with st.sidebar:
     # TU LOGO REAL
@@ -15,16 +16,17 @@ with st.sidebar:
         key="menu_principal"
     )
 
-# 3. Lógica de Contenido (Lo que se ve en el centro)
+# 3. Lógica de Contenido
 if opcion == "Inicio":
     st.title("🏗️ Ariar Steel: Control de Obra")
     st.subheader("Bienvenido al sistema oficial")
     
-    # Un cuadro informativo nítido
+    # Cuadro informativo limpio
     st.info("Selecciona una opción en el menú de la izquierda para comenzar.")
     
-    # Puedes poner una imagen de fondo o de la obra aquí
-    st.image("https://images.unsplash.com/photo-1541888946425-d81bb19480c5?auto=format&fit=crop&q=80&w=1000", caption="Calidad y Resistencia en cada varilla.")
+    # Aquí ya no hay imagen, quedará en blanco
+    st.write("---")
+    st.caption("Calidad y Resistencia en cada varilla.")
 
 elif opcion == "Chat de Equipo":
     st.title("💬 Chat de Equipo")
