@@ -1,12 +1,11 @@
 
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 
-# 1. Configuración de Seguridad y Pantalla
+# 1. Configuración de Pantalla
 st.set_page_config(page_title="Ariar Steel LLC", layout="centered")
 
-# Estilos rápidos (Azul y Blanco)
+# Estilos
 st.markdown("""
 <style>
     .titulo { color: #1E4D8C; text-align: center; font-family: 'Arial Black'; font-size: 40px; }
@@ -15,49 +14,41 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 2. Panel de Bienvenida
 st.markdown("<div class='titulo'>ARIAR STEEL LLC</div>", unsafe_allow_html=True)
-st.markdown("<div class='bienvenida'>Bienvenido al sistema de control de jornadas</div>", unsafe_allow_html=True)
+st.markdown("<div class='bienvenida'>Panel de Control de Horas</div>", unsafe_allow_html=True)
+
+# 2. El Link de tu Excel (ASEGÚRATE DE QUE SEA ESTE)
+# Si tu link es diferente, cámbialo aquí abajo entre las comillas
+sheet_url = "https://docs.google.com/spreadsheets/d/1cPGCf1XmYtG27U8y2oLdvdV5H086jDg/export?format=csv"
+
+def cargar_datos():
+    try:
+        return pd.read_csv(sheet_url)
+    except:
+        # Si falla, crea una tabla vacía para que la app no se trabe
+        return pd.DataFrame(columns=["Empleado", "Fecha", "Horas", "Notas"])
+
+df = cargar_datos()
 
 # 3. Menú Lateral
 with st.sidebar:
     st.title("MENÚ")
     rol = st.radio("Entrar como:", ["👷 Trabajador", "🔑 Administrador (Edwin)"])
 
-# 4. Conexión a Google Sheets
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-    df = conn.read()
-
-    if rol == "👷 Trabajador":
-        st.subheader("Consulta tus Horas")
-        nombre = st.selectbox("Selecciona tu nombre:", df["Empleado"].unique() if not df.empty else ["Sin datos"])
-        
+if rol == "👷 Trabajador":
+    st.subheader("Consulta tus Horas")
+    if not df.empty:
+        nombre = st.selectbox("Selecciona tu nombre:", df["Empleado"].unique())
         if st.button("Ver mis horas"):
             mis_horas = df[df["Empleado"] == nombre]
+            st.write(f"Horas totales de {nombre}:")
             st.dataframe(mis_horas[["Fecha", "Horas", "Notas"]], use_container_width=True)
+    else:
+        st.warning("Aún no hay horas registradas en el sistema.")
 
-    elif rol == "🔑 Administrador (Edwin)":
-        password = st.text_input("Introduce la clave de acceso:", type="password")
-        
-        # Clave simple para que solo tú entres (puedes cambiar '1234')
-        if password == "2222":
-            st.success("Acceso concedido, Edwin.")
-            st.subheader("Registrar Horas de Trabajadores")
-            
-            with st.form("form_admin"):
-                emp = st.text_input("Nombre del Trabajador")
-                fec = st.date_input("Fecha")
-                hrs = st.number_input("Horas Trabajadas", min_value=0.0, step=0.5)
-                not_ = st.text_area("Tarea realizada")
-                
-                if st.form_submit_button("Guardar en el Sistema"):
-                    nuevo = pd.DataFrame([{"Empleado": emp, "Fecha": str(fec), "Horas": hrs, "Notas": not_}])
-                    df_final = pd.concat([df, nuevo], ignore_index=True)
-                    conn.update(data=df_final)
-                    st.success("✅ Horas registradas correctamente.")
-        elif password != "":
-            st.error("Clave incorrecta")
-
-except Exception as e:
-    st.info("Configurando conexión... Asegúrate de conectar tu Google Sheet en Streamlit Cloud.")
+elif rol == "🔑 Administrador (Edwin)":
+    password = st.text_input("Introduce la clave de acceso:", type="password")
+    if password == "2222":
+        st.success("Acceso concedido.")
+        st.info("Para esta versión, registra las horas directamente en tu archivo de Excel de Google y se verán reflejadas aquí automáticamente.")
+        st.write("[Abrir mi Google Sheet](https://docs.google.com/spreadsheets/d/1cPGCf1XmYtG27U8y2oLdvdV5H086jDg/)")
