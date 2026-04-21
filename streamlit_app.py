@@ -5,7 +5,6 @@ from datetime import datetime, time
 
 st.set_page_config(page_title="Ariar Steel LLC", page_icon="🏗️")
 
-# Conexión a la base de datos
 conn = sqlite3.connect('ariar_horas.db', check_same_thread=False)
 c = conn.cursor()
 c.execute('CREATE TABLE IF NOT EXISTS registros (fecha TEXT, nombre TEXT, horas REAL, notas TEXT)')
@@ -29,11 +28,10 @@ if choice == "Registrar Horas (Admin)":
             lonche = st.selectbox("Tiempo de lonche (horas)", [0.5, 1.0, 0.0], index=0)
             notas = st.text_area("Notas (Opcional)")
             if st.form_submit_button("Guardar Registro"):
-                t1 = datetime.combine(fecha, h_entrada)
-                t2 = datetime.combine(fecha, h_salida)
+                t1, t2 = datetime.combine(fecha, h_entrada), datetime.combine(fecha, h_salida)
                 horas_c = ((t2 - t1).total_seconds() / 3600) - lonche
                 if horas_c <= 0:
-                    st.error("Error: La salida debe ser después de la entrada.")
+                    st.error("Error en las horas.")
                 else:
                     c.execute("INSERT INTO registros VALUES (?,?,?,?)", (fecha.strftime('%Y-%m-%d'), nombre, horas_c, notas))
                     conn.commit()
@@ -51,20 +49,18 @@ else:
                 st.table(df)
                 st.info(f"Total: {df['horas'].sum()} horas")
             else:
-                st.warning("No hay registros aún.")
+                st.warning("No hay registros.")
         elif pin_emp != "":
             st.error("PIN incorrecto.")
 
-# --- PANEL DE CONTROL MAESTRO ---
 st.sidebar.markdown("---")
 if st.sidebar.checkbox("Acceso Administrador Maestro"):
-    pin_boss = st.text_input("PIN Maestro", type="password")
+    pin_boss = st.text_input("PIN de Seguridad Maestro", type="password")
     if pin_boss == PINS["Admin"]:
-        st.info("Herramienta para borrar registros por fecha.")
-        emp_b = st.selectbox("Empleado", ["Luis", "Melvin", "Edwin"], key="adm_n")
-        f_b = st.date_input("Fecha", key="adm_f")
-        if st.button("BORRAR REGISTRO SELECCIONADO"):
+        emp_b = st.selectbox("Empleado a borrar", ["Luis", "Melvin", "Edwin"])
+        f_b = st.date_input("Fecha a borrar")
+        if st.button("BORRAR REGISTRO"):
             c.execute("DELETE FROM registros WHERE nombre=? AND fecha=?", (emp_b, f_b.strftime('%Y-%m-%d')))
             conn.commit()
-            st.success("Registro borrado.")
+            st.success("Borrado exitoso.")
             st.rerun()
