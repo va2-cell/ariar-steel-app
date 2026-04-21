@@ -1,95 +1,89 @@
+
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 
-# 1. Configuración de la pestaña y el Panel
+# 1. Configuración de la página
 st.set_page_config(
-    page_title="Ariar Steel LLC - Panel de Control",
+    page_title="Ariar Steel LLC",
     page_icon="🏗️",
     layout="wide"
 )
 
-# 2. Estilos para que se vea profesional (Azul Ariar)
+# 2. Estilos Personalizados
 st.markdown("""
 <style>
     .main-title {
         color: #1E4D8C;
         font-family: 'Arial Black', sans-serif;
-        font-size: 35px;
+        font-size: 45px;
         text-align: center;
-        margin-top: -50px;
+        margin-top: 20px;
     }
-    .sidebar-text {
-        font-weight: bold;
-        color: #1E4D8C;
+    .subtitle {
+        color: #555;
+        font-size: 20px;
+        text-align: center;
+        margin-bottom: 40px;
     }
-    div.stButton > button {
+    [data-testid="stSidebar"] {
         background-color: #1E4D8C;
-        color: white;
-        border-radius: 5px;
+    }
+    [data-testid="stSidebar"] * {
+        color: white !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Barra Lateral con el Logo y el Menú
+# 3. Barra Lateral (Menú)
 with st.sidebar:
-    # Aquí va el logo azul de Ariar
+    # Logo en el menú
     st.image("https://raw.githubusercontent.com/EdwinLopez22/Ariar-Steel-App/main/logo_ariar.png", use_container_width=True)
-    st.markdown("<h2 style='text-align: center; color: #1E4D8C;'>PANEL ARIAR STEEL</h2>", unsafe_allow_html=True)
-    st.write("---")
+    st.markdown("<h2 style='text-align: center;'>MENÚ</h2>", unsafe_allow_html=True)
     
     opcion = st.radio(
-        "SELECCIONE UNA OPCIÓN:",
-        ["🚜 Registro de Horas", "📊 Ver Reportes", "🛠️ Configuración"]
+        "Ir a:",
+        ["🏠 Inicio (Panel)", "🚜 Registro de Horas", "📊 Ver Reportes"]
     )
     st.write("---")
-    st.info("Usuario: Administrador")
+    st.write("Ariar Steel LLC © 2026")
 
-# 4. Título en el Panel Principal
-st.markdown("<div class='main-title'>PANEL DE CONTROL - ARIAR STEEL LLC</div>", unsafe_allow_html=True)
-st.write("---")
-
-# 5. Conexión a la base de datos de Google Sheets
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
+# 4. Lógica de Pantallas
+if opcion == "🏠 Inicio (Panel)":
+    # ESTO ES LO QUE VERÁS AL ABRIR LA APP
+    st.markdown("<div class='main-title'>PANEL DE CONTROL</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subtitle'>ARIAR STEEL LLC</div>", unsafe_allow_html=True)
     
-    if opcion == "🚜 Registro de Horas":
-        st.subheader("Ingreso de Jornada Laboral")
-        
-        with st.form(key="form_registro"):
-            col1, col2 = st.columns(2)
-            with col1:
-                empleado = st.selectbox("Nombre del Empleado", ["Edwin Lopez", "Alexandra", "Personal de Campo"])
-                fecha = st.date_input("Fecha de Trabajo")
-            with col2:
-                horas = st.number_input("Horas Trabajadas", min_value=0.0, max_value=24.0, step=0.5)
-                # Puedes agregar el campo 'Lugar de trabajo' si lo necesitas
-            
-            notas = st.text_area("Notas o descripción de la tarea")
-            
-            boton_enviar = st.form_submit_button("GUARDAR EN EL PANEL")
-            
-            if boton_enviar:
-                # Crear la fila para el Excel
-                nuevo_dato = pd.DataFrame([{
-                    "Empleado": empleado,
-                    "Fecha": str(fecha),
-                    "Horas": horas,
-                    "Notas": notas
-                }])
-                
-                # Leer datos actuales y guardar
-                datos_existentes = conn.read()
-                df_final = pd.concat([datos_existentes, nuevo_dato], ignore_index=True)
-                conn.update(data=df_final)
-                
-                st.success(f"✅ ¡Datos guardados correctamente para {empleado}!")
+    # Logo grande central
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.image("https://raw.githubusercontent.com/EdwinLopez22/Ariar-Steel-App/main/logo_ariar.png", use_container_width=True)
+    
+    st.info("Utilice el menú de la izquierda para registrar sus horas o consultar reportes.")
 
-    elif opcion == "📊 Ver Reportes":
-        st.subheader("Historial de Registros")
+elif opcion == "🚜 Registro de Horas":
+    st.markdown("<h2 style='color: #1E4D8C;'>Registro de Jornada</h2>", unsafe_allow_html=True)
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+        with st.form(key="form_trabajo"):
+            empleado = st.selectbox("Empleado", ["Edwin Lopez", "Alexandra", "Personal"])
+            fecha = st.date_input("Fecha")
+            horas = st.number_input("Horas", min_value=0.0, step=0.5)
+            notas = st.text_area("Notas")
+            if st.form_submit_button("Guardar Registro"):
+                nuevo = pd.DataFrame([{"Empleado": empleado, "Fecha": str(fecha), "Horas": horas, "Notas": notas}])
+                actual = conn.read()
+                df_final = pd.concat([actual, nuevo], ignore_index=True)
+                conn.update(data=df_final)
+                st.success("✅ Guardado en el sistema.")
+    except:
+        st.error("Error de conexión. Verifica los Secrets.")
+
+elif opcion == "📊 Ver Reportes":
+    st.markdown("<h2 style='color: #1E4D8C;'>Historial de Trabajo</h2>", unsafe_allow_html=True)
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
         df = conn.read()
         st.dataframe(df, use_container_width=True)
-
-except Exception as e:
-    st.error("⚠️ Error de conexión: Revisa si los 'Secrets' están pegados en Streamlit Cloud.")
-    st.info("Si la app carga pero no guarda, es porque falta la clave del Excel en la configuración.")
+    except:
+        st.error("No se pudo cargar el historial.")
