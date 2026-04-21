@@ -1,11 +1,37 @@
 
 import streamlit as st
 import pandas as pd
+import sqlite3
+from datetime import datetime
 
 # 1. Configuración de Pantalla
 st.set_page_config(page_title="Ariar Steel LLC", layout="centered")
 
-# Estilos
+# --- FUNCIONES DE BASE DE DATOS ---
+def conectar_db():
+    conn = sqlite3.connect('ariar_horas.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS registro 
+                 (Empleado TEXT, Fecha TEXT, Horas REAL, Notas TEXT)''')
+    conn.commit()
+    return conn
+
+def guardar_datos(empleado, fecha, horas, notas):
+    conn = conectar_db()
+    c = conn.cursor()
+    c.execute("INSERT INTO registro VALUES (?, ?, ?, ?)", (empleado, fecha, horas, notas))
+    conn.commit()
+    conn.close()
+
+def cargar_datos_locales():
+    conn = conectar_db()
+    df = pd.read_sql_query("SELECT * FROM registro", conn)
+    conn.close()
+    if df.empty:
+        return pd.DataFrame(columns=["Empleado", "Fecha", "Horas", "Notas"])
+    return df
+
+# --- ESTILOS ---
 st.markdown("""
 <style>
     .titulo { color: #1E4D8C; text-align: center; font-family: 'Arial Black'; font-size: 40px; }
@@ -17,20 +43,9 @@ st.markdown("""
 st.markdown("<div class='titulo'>ARIAR STEEL LLC</div>", unsafe_allow_html=True)
 st.markdown("<div class='bienvenida'>Panel de Control de Horas</div>", unsafe_allow_html=True)
 
-# 2. El Link de tu Excel (ASEGÚRATE DE QUE SEA ESTE)
-# Si tu link es diferente, cámbialo aquí abajo entre las comillas
-sheet_url = "https://docs.google.com/spreadsheets/d/1cPGCf1XmYtG27U8y2oLdvdV5H086jDg/export?format=csv"
+df = cargar_datos_locales()
 
-def cargar_datos():
-    try:
-        return pd.read_csv(sheet_url)
-    except:
-        # Si falla, crea una tabla vacía para que la app no se trabe
-        return pd.DataFrame(columns=["Empleado", "Fecha", "Horas", "Notas"])
-
-df = cargar_datos()
-
-# 3. Menú Lateral
+# 2. Menú Lateral
 with st.sidebar:
     st.title("MENÚ")
     rol = st.radio("Entrar como:", ["👷 Trabajador", "🔑 Administrador (Edwin)"])
@@ -38,10 +53,10 @@ with st.sidebar:
 if rol == "👷 Trabajador":
     st.subheader("Consulta tus Horas")
     if not df.empty:
-        nombre = st.selectbox("Selecciona tu nombre:", df["Empleado"].unique())
+        nombre_sel = st.selectbox("Selecciona tu nombre:", df["Empleado"].unique())
         if st.button("Ver mis horas"):
-            mis_horas = df[df["Empleado"] == nombre]
-            st.write(f"Horas totales de {nombre}:")
+            mis_horas = df[df["Empleado"] == nombre_sel]
+            st.write(f"Horas totales de {nombre_sel}:")
             st.dataframe(mis_horas[["Fecha", "Horas", "Notas"]], use_container_width=True)
     else:
         st.warning("Aún no hay horas registradas en el sistema.")
@@ -50,5 +65,23 @@ elif rol == "🔑 Administrador (Edwin)":
     password = st.text_input("Introduce la clave de acceso:", type="password")
     if password == "2222":
         st.success("Acceso concedido.")
-        st.info("Para esta versión, registra las horas directamente en tu archivo de Excel de Google y se verán reflejadas aquí automáticamente.")
-        st.write("[Abrir mi Google Sheet](https://docs.google.com/spreadsheets/d/1cPGCf1XmYtG27U8y2oLdvdV5H086jDg/)")
+        
+        # --- FORMULARIO PARA REGISTRAR HORAS ---
+        st.subheader("📝 Registrar Nueva Jornada")
+        with st.form("registro_form"):
+            nombre = st.text_input("Nombre del Empleado")
+            fecha = st.date_input("Fecha", datetime.now())
+            horas = st.number_input("Cantidad de Horas", min_value=0.0, step=0.5)
+            notas = st.text_area("Notas / Proyecto")
+            enviar = st.form_submit_button("Guardar en Base de Datos")
+            
+            if enviar:
+                if nombre:
+                    guardar_datos(nombre, fecha.strftime('%Y-%m-%d'), horas, notas)
+                    st.success(f"Horas de {nombre} guardadas correctamente.")
+                    st.rerun() # Para actualizar la tabla abajo
+                else:
+                    st.error("Por favor, pon un nombre.")
+
+        st.subheader("📊 Todos los Registros")
+        st.dataframe(df, use_container_width=True)
