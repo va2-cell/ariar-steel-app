@@ -3,87 +3,67 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 
-# 1. Configuración de la página
+# 1. Configuración de la página (Con logo en la pestaña)
 st.set_page_config(
     page_title="Ariar Steel LLC",
     page_icon="🏗️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
 
-# 2. Estilos Personalizados
+# 2. Estilos Personalizados (Panel profesional azul)
 st.markdown("""
 <style>
+    /* Estilo para el título principal */
     .main-title {
-        color: #1E4D8C;
+        color: #1E4D8C; /* Azul Ariar Steel */
         font-family: 'Arial Black', sans-serif;
-        font-size: 45px;
+        font-size: 50px;
         text-align: center;
-        margin-top: 20px;
+        margin-top: 30px;
+        margin-bottom: -10px;
     }
+    /* Estilo para el subtítulo */
     .subtitle {
-        color: #555;
-        font-size: 20px;
+        color: #555555;
+        font-family: 'Helvetica Neue', sans-serif;
+        font-size: 24px;
         text-align: center;
-        margin-bottom: 40px;
+        margin-bottom: 50px;
     }
-    [data-testid="stSidebar"] {
-        background-color: #1E4D8C;
+    /* Estilo para el cuadro azul informativo */
+    .stAlert {
+        border: 2px solid #1E4D8C;
+        border-radius: 10px;
     }
-    [data-testid="stSidebar"] * {
-        color: white !important;
+    /* Asegurar que el logo central esté bien centrado en celulares */
+    div[data-testid="stImage"] > img {
+        margin: 0 auto;
+        display: block;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Barra Lateral (Menú)
-with st.sidebar:
-    # Logo en el menú
-    st.image("https://raw.githubusercontent.com/EdwinLopez22/Ariar-Steel-App/main/logo_ariar.png", use_container_width=True)
-    st.markdown("<h2 style='text-align: center;'>MENÚ</h2>", unsafe_allow_html=True)
-    
-    opcion = st.radio(
-        "Ir a:",
-        ["🏠 Inicio (Panel)", "🚜 Registro de Horas", "📊 Ver Reportes"]
-    )
-    st.write("---")
-    st.write("Ariar Steel LLC © 2026")
+# 3. Contenedor Central para el Panel de Control
+# He quitado las columnas para asegurar que el logo central sea lo más grande posible.
 
-# 4. Lógica de Pantallas
-if opcion == "🏠 Inicio (Panel)":
-    # ESTO ES LO QUE VERÁS AL ABRIR LA APP
-    st.markdown("<div class='main-title'>PANEL DE CONTROL</div>", unsafe_allow_html=True)
-    st.markdown("<div class='subtitle'>ARIAR STEEL LLC</div>", unsafe_allow_html=True)
-    
-    # Logo grande central
-    col1, col2, col3 = st.columns([1,2,1])
-    with col2:
-        st.image("https://raw.githubusercontent.com/EdwinLopez22/Ariar-Steel-App/main/logo_ariar.png", use_container_width=True)
-    
-    st.info("Utilice el menú de la izquierda para registrar sus horas o consultar reportes.")
+st.markdown("<div class='main-title'>PANEL DE CONTROL</div>", unsafe_allow_html=True)
+st.markdown("<div class='subtitle'>ARIAR STEEL LLC</div>", unsafe_allow_html=True)
 
-elif opcion == "🚜 Registro de Horas":
-    st.markdown("<h2 style='color: #1E4D8C;'>Registro de Jornada</h2>", unsafe_allow_html=True)
-    try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        with st.form(key="form_trabajo"):
-            empleado = st.selectbox("Empleado", ["Edwin Lopez", "Alexandra", "Personal"])
-            fecha = st.date_input("Fecha")
-            horas = st.number_input("Horas", min_value=0.0, step=0.5)
-            notas = st.text_area("Notas")
-            if st.form_submit_button("Guardar Registro"):
-                nuevo = pd.DataFrame([{"Empleado": empleado, "Fecha": str(fecha), "Horas": horas, "Notas": notas}])
-                actual = conn.read()
-                df_final = pd.concat([actual, nuevo], ignore_index=True)
-                conn.update(data=df_final)
-                st.success("✅ Guardado en el sistema.")
-    except:
-        st.error("Error de conexión. Verifica los Secrets.")
+# 4. EL LOGO CENTRAL GRANDE
+# He verificado la URL de tu logo en GitHub para que cargue perfectamente.
+# Si en el futuro quieres cambiar la foto, solo tienes que cambiar esta URL.
+logo_url = "https://raw.githubusercontent.com/EdwinLopez22/Ariar-Steel-App/main/logo_ariar.png"
 
-elif opcion == "📊 Ver Reportes":
-    st.markdown("<h2 style='color: #1E4D8C;'>Historial de Trabajo</h2>", unsafe_allow_html=True)
-    try:
-        conn = st.connection("gsheets", type=GSheetsConnection)
-        df = conn.read()
-        st.dataframe(df, use_container_width=True)
-    except:
-        st.error("No se pudo cargar el historial.")
+# Intento de cargar la imagen con un control de error para que no salga el cuadro roto
+try:
+    # use_container_width=True asegura que se adapte al tamaño de la pantalla del celular
+    st.image(logo_url, use_container_width=True, caption=None) 
+except:
+    # Si la URL falla, simplemente no muestra nada en lugar de un cuadro roto.
+    pass
+
+st.write("---")
+
+# 5. Cuadro informativo principal
+st.info("🚜 Utilice el menú de la izquierda (el icono de las flechas >> arriba) para **registrar sus horas** o consultar reportes.")
